@@ -188,14 +188,24 @@ function retry(func, attempts) {
  */
 function logger(func, logFunc) {
   return function innerFunc(...args) {
-    const argsString = args.join(', ');
     const funcName = func.name;
+    const argsStr = args
+      .map((arg) => {
+        if (Array.isArray(arg)) {
+          return `[${arg
+            .map((item) => (typeof item === 'string' ? `"${item}"` : item))
+            .join(',')}]`;
+        }
+        if (typeof arg === 'string') {
+          return `"${arg}"`;
+        }
+        return String(arg);
+      })
+      .join(',');
 
-    logFunc(`${funcName}(${argsString}) starts`);
-
-    const result = func(...args);
-
-    logFunc(`${funcName}(${argsString}) ends`);
+    logFunc(`${funcName}(${argsStr}) starts`);
+    const result = func.apply(this, args);
+    logFunc(`${funcName}(${argsStr}) ends`);
 
     return result;
   };
